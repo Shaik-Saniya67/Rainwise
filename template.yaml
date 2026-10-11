@@ -1,0 +1,41 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: RainWise - rooftop rainwater harvest calculator API (Lambda + API Gateway HTTP API)
+
+Globals:
+  Function:
+    Runtime: python3.12
+    Architectures: [x86_64]
+    Timeout: 5
+    MemorySize: 128
+
+Resources:
+  RainWiseApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      # No CORS block on purpose: the Streamlit server calls this API from Python,
+      # not from browser JavaScript, so browser CORS is not needed.
+      DefaultRouteSettings:
+        ThrottlingBurstLimit: 20
+        ThrottlingRateLimit: 10
+
+  RainWiseFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: Validates inputs and returns the harvest estimate and tank recommendation
+      CodeUri: src/
+      Handler: rainwise.handler.lambda_handler
+      # No Policies: SAM attaches only the basic CloudWatch Logs execution role.
+      # The function reads nothing and writes nothing else in AWS (stateless).
+      Events:
+        Calculate:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref RainWiseApi
+            Path: /calculate
+            Method: POST
+
+Outputs:
+  CalculateUrl:
+    Description: Full URL of the POST /calculate endpoint (use this as RAINWISE_API_URL)
+    Value: !Sub "https://${RainWiseApi}.execute-api.${AWS::Region}.amazonaws.com/calculate"

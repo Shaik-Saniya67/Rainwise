@@ -1,0 +1,9 @@
+{
+  "version": "2.0",
+  "routeKey": "POST /calculate",
+  "rawPath": "/calculate",
+  "headers": { "content-type": "application/json" },
+  "requestContext": { "http": { "method": "POST", "path": "/calculate" } },
+  "isBase64Encoded": false,
+  "body": "{\"roof_area_m2\": 200, \"rainfall_mm\": 50, \"efficiency_percent\": 80}"
+}
